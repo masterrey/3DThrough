@@ -2,10 +2,13 @@
 
 Welcome to the 3D Through plugin documentation!
 
+[![Get it on Unity Asset Store](https://img.shields.io/badge/GET%20IT%20ON-Unity%20Asset%20Store-00979D?style=for-the-badge&logo=unity&logoColor=white)](https://assetstore.unity.com/packages/tools/3dthrough-3772)
+
 ## Quick Links
 
 ### For Users
 
+- **[Unity Asset Store](https://assetstore.unity.com/packages/tools/3dthrough-3772)** - Get the plugin
 - **[Getting Started](../Assets/3DThrough/GettingStarted.txt)** - Quick start guide for first-time users
 - **[User Manual (PDF)](3DThrough_Manual.pdf)** - Complete documentation with setup guide and examples
 - **[Package README](../Assets/3DThrough/README.md)** - Overview of the plugin
@@ -76,6 +79,7 @@ void Update() {
 - Buttons 7-10: View presets
 
 ### Support
+- **Unity Asset Store**: https://assetstore.unity.com/packages/tools/3dthrough-3772
 - **Email**: masterrey@gmail.com
 - **GitHub Issues**: https://github.com/masterrey/3DThrough/issues
 - **Repository**: https://github.com/masterrey/3DThrough
