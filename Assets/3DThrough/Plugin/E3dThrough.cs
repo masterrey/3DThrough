@@ -1,21 +1,24 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Classe estática para expor valores brutos de translação e rotação do mouse 3D.
-/// Usada quando o modo "Brute Axis" está ativado no S3dThrough para acesso direto aos dados do sensor.
-/// </summary>
-public class E3dThrough
+namespace Mouse3D
 {
     /// <summary>
-    /// Vetor de translação bruto do dispositivo 3D.
-    /// Valores representam movimento nos eixos X, Y e Z sem processamento adicional.
+    /// Static class to expose raw translation and rotation values from the 3D mouse.
+    /// Used when "Brute Axis" mode is enabled in S3dThrough for direct access to sensor data.
     /// </summary>
-    public static Vector3 BruteTranslation;
-    
-    /// <summary>
-    /// Vetor de rotação bruto do dispositivo 3D com sensibilidade aplicada.
-    /// Valores representam rotação nos eixos X, Y e Z multiplicados pela sensibilidade configurada.
-    /// </summary>
-    public static Vector3 BruteRotation;
+    public class E3dThrough
+    {
+        /// <summary>
+        /// Raw translation vector from the 3D device.
+        /// Values represent movement on X, Y and Z axes without additional processing.
+        /// </summary>
+        public static Vector3 BruteTranslation;
+        
+        /// <summary>
+        /// Raw rotation vector from the 3D device with sensitivity applied.
+        /// Values represent rotation on X, Y and Z axes multiplied by the configured sensitivity.
+        /// </summary>
+        public static Vector3 BruteRotation;
+    }
 }
