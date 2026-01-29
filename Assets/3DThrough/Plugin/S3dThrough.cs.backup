@@ -1,0 +1,372 @@
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Mouse3D
+{
+    using UnityEngine;
+    using System.Collections;
+    using UnityEditor;
+    using System.Runtime.InteropServices;
+
+    /// <summary>
+    /// Editor window para controlar a câmera do Unity Scene View e objetos selecionados usando um mouse 3D (3DConnexion SpaceMouse).
+    /// Fornece integração com dispositivos 3D para navegação intuitiva no editor.
+    /// </summary>
+    public class S3dThrough : EditorWindow
+    {
+        #region Campos Privados
+        
+        bool groupEnabled;
+        bool onetimeb = true;
+        
+        /// <summary>
+        /// Quando ativado, expõe os valores brutos de translação e rotação através da classe E3dThrough.
+        /// </summary>
+        public bool bruteAxis = false;
+        
+        /// <summary>Sensor do dispositivo 3D para capturar movimentos de translação.</summary>
+        protected TDx.TDxInput.Sensor sensor;
+        
+        /// <summary>Teclado do dispositivo 3D para capturar pressionamentos de botões.</summary>
+        protected TDx.TDxInput.Keyboard keyboard;
+        
+        /// <summary>Instância do dispositivo 3D conectado.</summary>
+        protected TDx.TDxInput.Device device;
+        
+        private bool isRunning;
+        
+        /// <summary>Quando ativado, controla o objeto selecionado em vez da câmera do Scene View.</summary>
+        private bool objectfocus;
+        
+        /// <summary>Posição atual da câmera ou do objeto sendo controlado.</summary>
+        Vector3 posicao;
+        
+        /// <summary>Rotação atual em ângulos de Euler da câmera.</summary>
+        Vector3 rotacao;
+        
+        /// <summary>Sensibilidade da rotação (0.0 a 1.0).</summary>
+        float rotationsensivity = 0.1f;
+        
+        /// <summary>Sensibilidade da translação (0.0 a 1.0).</summary>
+        float translationsensivity = 0.1f;
+        
+        float distsensivty = 0.1f;
+        
+        /// <summary>Referência ao Transform do objeto atualmente selecionado.</summary>
+        Transform thist;
+        
+        /// <summary>Referência estática à janela do editor.</summary>
+        static S3dThrough window;
+		
+		
+        
+        /// <summary>Flags para controle de toggle dos botões do dispositivo 3D.</summary>
+        bool toglebutton1, toglebutton2, toglebutton3;
+        
+        #endregion
+
+        #region Menu Item e Inicialização
+        
+        /// <summary>
+        /// Abre a janela do editor 3D Through através do menu Window/3D Through.
+        /// </summary>
+        [MenuItem("Window/3D Through")]
+        static void Init()
+        {
+            // Obtém janela existente ou cria uma nova
+            window = GetWindow<S3dThrough>();
+        }
+        
+        #endregion
+
+        #region Métodos do Ciclo de Vida do Editor
+        
+        /// <summary>
+        /// Chamado quando a janela é destruída. Desconecta o dispositivo 3D.
+        /// </summary>
+        void OnDestroy()
+        {
+            try
+            {
+                if (device != null)
+                    this.device.Disconnect();
+            }
+            catch (COMException e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Chamado quando a janela é desabilitada. Salva preferências e desconecta o dispositivo.
+        /// </summary>
+        void OnDisable()
+        {
+            EditorPrefs.SetFloat("m3dTrotationsensivity", rotationsensivity);
+            EditorPrefs.SetFloat("m3dTtranslationsensivity", translationsensivity);
+            try
+            {
+                if (device != null)
+                    this.device.Disconnect();
+            }
+            catch (COMException e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Chamado quando a janela é habilitada. Carrega preferências salvas.
+        /// </summary>
+        void OnEnable()
+        {
+            rotationsensivity = EditorPrefs.GetFloat("m3dTrotationsensivity", 0.1f);
+            translationsensivity = EditorPrefs.GetFloat("m3dTtranslationsensivity", 0.1f);
+        }
+        
+        #endregion
+
+        #region Inicialização do Dispositivo
+        
+        /// <summary>
+        /// Inicializa e conecta o dispositivo 3D se ainda não estiver conectado.
+        /// </summary>
+        void init()
+        {
+            try
+            {
+                if (this.device == null)
+                {
+                    this.device = new TDx.TDxInput.Device();
+                    sensor = this.device.Sensor;
+                    keyboard = this.device.Keyboard;
+                    this.device.LoadPreferences("Unity");
+                }
+
+                // Conecta o dispositivo se não estiver conectado
+                if (!device.IsConnected)
+                {
+                    this.device.Connect();
+                }
+            }
+            catch (COMException e)
+            {
+                Debug.Log(e.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Inicialização única para capturar o estado inicial da câmera do Scene View.
+        /// </summary>
+        void onetime()
+        {
+            if (onetimeb)
+            {
+                onetimeb = false;
+                if (SceneView.currentDrawingSceneView != null)
+                {
+                    posicao = SceneView.currentDrawingSceneView.pivot;
+                    rotacao = SceneView.currentDrawingSceneView.rotation.eulerAngles;
+                }
+            }
+        }
+        
+        #endregion
+
+        #region Métodos de Atualização
+        void Update()
+        {
+            onetime();
+            init();
+            if (device != null && device.IsConnected)
+            {
+                this.sensor_SensorInput();
+				
+            }
+        }
+        void OnGUI()
+        {
+
+            GUILayout.Label("Base Settings", EditorStyles.boldLabel);
+            objectfocus = EditorGUILayout.Toggle("Object", objectfocus);
+            // 	EditorGUILayout.TextField ("Text Field", myString);
+            rotationsensivity = EditorGUILayout.Slider("Rot sens", rotationsensivity, 0, 1);
+            translationsensivity = EditorGUILayout.Slider("Trans sens", translationsensivity, 0, 1);
+			bruteAxis = EditorGUILayout.Toggle("Brute Axis", bruteAxis);
+			
+			//distsensivty = EditorGUILayout.Slider("Dist sens", distsensivty, 0, 100);
+			
+            /*
+            groupEnabled = EditorGUILayout.BeginToggleGroup ("Optional Settings", groupEnabled);
+                myBool = EditorGUILayout.Toggle ("Toggle", myBool);
+                myFloat = EditorGUILayout.Slider ("Slider", myFloat, -3, 3);
+            EditorGUILayout.EndToggleGroup ();
+            */
+        }
+        void sensor_SensorInput()
+        {
+			
+            if (Selection.activeTransform)
+            {
+                thist = Selection.activeTransform;
+            }
+            else
+            {
+                objectfocus = false;
+
+            }
+            TDx.TDxInput.Vector3D translation;
+            translation = sensor.Translation;
+            // translation.Length = translation.Length* Time.deltaTime;
+			//Debug.Log(translation);
+            TDx.TDxInput.AngleAxis rotation;
+            rotation = sensor.Rotation;
+            // rotation.Angle = rotation.Angle* Time.deltaTime;
+            if (SceneView.currentDrawingSceneView != null)
+            {
+               
+
+
+                if (keyboard.IsKeyDown(2)&&toglebutton1)
+                {
+                  objectfocus = !objectfocus;
+					toglebutton1=false;
+                }
+				if (keyboard.IsKeyUp(2)){
+					
+					toglebutton1=true;
+				}
+				 if (keyboard.IsKeyDown(3))
+                {
+                   
+                     SceneView.currentDrawingSceneView.LookAt(SceneView.currentDrawingSceneView.camera.transform.position,SceneView.currentDrawingSceneView.camera.transform.rotation,1);
+					
+                }
+				 if (keyboard.IsKeyDown(4)&&toglebutton2)
+                {
+                   toglebutton2=false;
+                     SceneView.currentDrawingSceneView.orthographic=!SceneView.currentDrawingSceneView.orthographic;
+                } 
+				if (keyboard.IsKeyUp(4))
+                {
+					 toglebutton2=true;
+				}
+				 if (keyboard.IsKeyDown(5)&&toglebutton3)
+                {
+                    toglebutton3=false;
+                     bruteAxis=!bruteAxis;
+                }
+				if (keyboard.IsKeyUp(5))
+                {
+					toglebutton3=true;
+				}
+                if (keyboard.IsKeyDown(7))
+                {
+                    if (Selection.activeTransform)
+                    {
+                        thist = Selection.activeTransform;
+                        SceneView.currentDrawingSceneView.LookAt(thist.position, Quaternion.LookRotation(Vector3.down));
+                    }
+                }
+                if (keyboard.IsKeyDown(8))
+                {
+                    if (Selection.activeTransform)
+                    {
+                        thist = Selection.activeTransform;
+                        SceneView.currentDrawingSceneView.LookAt(thist.position, Quaternion.LookRotation(Vector3.left));
+                    }
+                }
+                if (keyboard.IsKeyDown(9))
+                {
+                    if (Selection.activeTransform)
+                    {
+                        thist = Selection.activeTransform;
+                        SceneView.currentDrawingSceneView.LookAt(thist.position, Quaternion.LookRotation(Vector3.right));
+                    }
+                }
+                if (keyboard.IsKeyDown(10))
+                {
+                    if (Selection.activeTransform)
+                    {
+                        thist = Selection.activeTransform;
+                        SceneView.currentDrawingSceneView.LookAt(thist.position, Quaternion.LookRotation(Vector3.forward));
+                    }
+                }
+                if (keyboard.IsKeyDown(11))
+                {
+                    if (Selection.activeTransform)
+                    {
+                        thist = Selection.activeTransform;
+                        SceneView.currentDrawingSceneView.LookAt(thist.position);
+
+
+                    }
+                }
+				 if (translation.Length > 0 || rotation.Angle > 0)
+                {
+					if(bruteAxis){
+						E3dThrough.BruteTranslation=new Vector3(-(float)translation.X,(float)translation.Y,-(float)translation.Z);
+						E3dThrough.BruteRotation=new Vector3((float)rotation.X, (float)rotation.Y, -(float)rotation.Z) * (float)rotation.Angle * -rotationsensivity / 10;
+						return;
+					}
+                    posicao += SceneView.currentDrawingSceneView.camera.transform.forward * -(float)translation.Z * translationsensivity ;
+                    posicao += SceneView.currentDrawingSceneView.camera.transform.TransformDirection(Vector3.left) * -(float)translation.X * translationsensivity ;
+                    posicao += SceneView.currentDrawingSceneView.camera.transform.TransformDirection(Vector3.up) * (float)translation.Y * translationsensivity ;
+
+                    rotacao += new Vector3((float)rotation.X, (float)rotation.Y, -(float)rotation.Z) * (float)rotation.Angle * -rotationsensivity / 10;
+					
+					
+                    if (objectfocus)
+                    {
+                        if (Selection.activeTransform)
+                        {
+                            thist.position = posicao;
+                            thist.RotateAround(SceneView.currentDrawingSceneView.camera.transform.forward, (float)rotation.Angle * (float)rotation.Z / 1000);
+                            thist.RotateAround(SceneView.currentDrawingSceneView.camera.transform.TransformDirection(Vector3.left), (float)rotation.Angle * (float)rotation.X / 1000);
+                            thist.RotateAround(SceneView.currentDrawingSceneView.camera.transform.TransformDirection(Vector3.up), (float)rotation.Angle * -(float)rotation.Y / 1000);
+                            SceneView.currentDrawingSceneView.LookAt(posicao);
+                            SceneView.currentDrawingSceneView.Focus();
+                        }
+                    }
+                    else
+                    {
+
+                        SceneView.currentDrawingSceneView.LookAt(posicao);
+						
+                        SceneView.currentDrawingSceneView.rotation = Quaternion.Euler(rotacao);
+                        SceneView.currentDrawingSceneView.Focus();
+
+                    }
+
+
+                }
+                else
+                {
+                    if (!objectfocus)
+                    {
+                        posicao = SceneView.currentDrawingSceneView.pivot;
+                        rotacao = SceneView.currentDrawingSceneView.rotation.eulerAngles;
+                    }
+                    else
+                    {
+                        if (Selection.activeTransform)
+                        {
+                            posicao = thist.position;
+                            Undo.RegisterUndo(thist, "Move " + thist.name);
+                        }
+
+                    }
+                }
+
+            }
+
+        }
+
+
+
+
+    }
+
+}
