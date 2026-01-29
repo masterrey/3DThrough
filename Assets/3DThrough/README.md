@@ -1,98 +1,52 @@
-# 3D Through - Plugin Unity para Mouse 3D
+# 3D Through - Unity Editor Plugin
 
-Plugin Unity Editor para integração com dispositivos 3D (3DConnexion SpaceMouse e similares).
-Permite controlar a câmera do Scene View e manipular objetos selecionados usando entrada 6DOF (6 Degrees of Freedom).
+**Seamless 3DConnexion SpaceMouse integration for Unity Editor**
 
-## Requisitos
+## Overview
 
-- Unity Editor (testado em versões antigas)
-- Dispositivo 3D compatível (3DConnexion SpaceMouse, Space Navigator, etc.)
-- Driver TDxInput instalado e configurado
+3D Through brings professional 3D mouse support to Unity Editor, enabling intuitive 6-degree-of-freedom (6DOF) navigation and object manipulation.
 
-## Instalação
+## Quick Start
 
-1. Copie a pasta `3DThrough` para `Assets/` do seu projeto Unity
-2. Certifique-se de que o driver do dispositivo 3D está instalado
-3. Abra a janela através do menu: **Window > 3D Through**
+1. Install 3DConnexion drivers from https://www.3dconnexion.com/service/drivers.html
+2. Open the plugin window via **Tools > 3D Through**
+3. Start navigating with your 3D mouse!
 
-## Uso
+## Key Features
 
-### Modos de Operação
+- Scene View camera control with 6DOF input
+- Direct GameObject manipulation
+- Custom scripting with raw sensor data
+- Adjustable sensitivity settings
+- Button shortcuts for common actions
+- Automatic reconnection
 
-#### Modo Câmera (padrão)
-- Move e rotaciona a câmera do Scene View
-- Use o dispositivo 3D para navegar livremente pela cena
+## Documentation
 
-#### Modo Objeto
-- Ative através do toggle "Object" na janela do plugin (ou Botão 2 do dispositivo)
-- Controla diretamente o objeto selecionado na hierarquia
-- Útil para posicionar e rotacionar objetos com precisão
+Full documentation is available in the Documentation folder:
+- Complete manual with setup guide (PDF/Markdown)
+- Script reference
+- Example scripts
+- Troubleshooting guide
 
-#### Modo Brute Axis
-- Ative através do toggle "Brute Axis" na janela (ou Botão 5 do dispositivo)
-- Expõe valores brutos do sensor através de `E3dThrough.BruteTranslation` e `E3dThrough.BruteRotation`
-- Útil para implementações customizadas
+See **GettingStarted.txt** for quick instructions.
 
-### Controles da Interface
+## Open Source
 
-- **Object**: Toggle entre modo câmera e modo objeto
-- **Rot sens**: Sensibilidade da rotação (0.0 - 1.0)
-- **Trans sens**: Sensibilidade da translação (0.0 - 1.0)
-- **Brute Axis**: Toggle do modo de valores brutos
+This project is now open source!
 
-### Atalhos do Dispositivo 3D
+**GitHub Repository:** https://github.com/masterrey/3DThrough
 
-| Botão | Função |
-|-------|--------|
-| 2 | Toggle modo Objeto/Câmera |
-| 3 | Reset da câmera |
-| 4 | Toggle Perspectiva/Ortográfico |
-| 5 | Toggle modo Brute Axis |
-| 7 | Vista de cima (objeto selecionado) |
-| 8 | Vista esquerda (objeto selecionado) |
-| 9 | Vista direita (objeto selecionado) |
-| 10 | Vista frontal (objeto selecionado) |
-| 11 | Vista padrão (objeto selecionado) |
+- Report issues
+- Contribute improvements
+- View source code
+- Fork for modifications
 
-## Estrutura do Código
+## Support
 
-### S3dThrough.cs
-Classe principal do Editor Window. Gerencia:
-- Conexão com o dispositivo 3D
-- Processamento de entrada do sensor
-- Controle da câmera e objetos
-- Interface do usuário
+- **GitHub Issues:** https://github.com/masterrey/3DThrough/issues
+- **Email:** masterrey@gmail.com
 
-### E3dThrough.cs
-Classe utilitária estática para expor valores brutos do sensor quando o modo Brute Axis está ativo.
+## License
 
-## Atualizações na Versão Moderna
-
-Esta versão foi modernizada com:
-- Uso de `EditorPrefs` em vez de `PlayerPrefs` (apropriado para configurações do editor)
-- Uso de `GetWindow<T>()` em vez de `GetWindow(typeof(T))` (sintaxe moderna)
-- Uso de `Undo.RecordObject` em vez de `Undo.RegisterUndo` (API atualizada)
-- Documentação XML completa em português
-- Código organizado com regions
-- Remoção de código comentado não utilizado
-- Formatação e indentação consistentes
-
-## Notas Técnicas
-
-- As preferências são salvas em `EditorPrefs` com chaves:
-  - `m3dTrotationsensivity`: Sensibilidade de rotação
-  - `m3dTtranslationsensivity`: Sensibilidade de translação
-  
-- O dispositivo é automaticamente reconectado a cada frame se desconectado
-
-- Movimentos são aplicados no espaço relativo à câmera do Scene View
-
-## Limitações Conhecidas
-
-- Requer driver TDxInput COM instalado
-- Testado apenas com dispositivos 3DConnexion
-- Alguns valores de rotação podem precisar de ajuste fino dependendo do dispositivo
-
-## Licença
-
-Este é um plugin antigo adaptado e modernizado. Use conforme necessário em seus projetos Unity.
+Apache License 2.0
